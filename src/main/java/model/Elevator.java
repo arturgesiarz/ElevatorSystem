@@ -1,5 +1,6 @@
 package model;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -8,21 +9,16 @@ import static java.lang.Math.abs;
 import static model.ElevatorDirection.*;
 
 public class Elevator {
-    public static final int NO_TARGET_FLOOR = -1;
     private static final int START_FLOOR = 0;
     private final UUID id;
     private int currentFloor;
-    private int targetFloor;
-    private List<Call> futureTargets;  // future lift calls
-    private ElevatorDirection direction;
-    private boolean isOccupied;
+    private Optional<Call> targetCall;
+    private List<Call> futureCall;
 
     public Elevator() {
         id = UUID.randomUUID();
         currentFloor = START_FLOOR;
-        targetFloor = NO_TARGET_FLOOR;
-        isOccupied = false;
-        direction = UNSELECTED;
+        futureCall = new ArrayList<Call>();
     }
 
     public UUID getId() {
@@ -33,28 +29,24 @@ public class Elevator {
         return currentFloor;
     }
 
-    public int getTargetFloor() {
-        return targetFloor;
+    public Optional<Call> getTargetCall() {
+        return targetCall;
+    }
+
+    public List<Call> getFutureCall() {
+        return futureCall;
     }
 
     public boolean isOccupied() {
-        return isOccupied;
-    }
-
-    public ElevatorDirection getDirection() {
-        return direction;
+        return targetCall != null ? true : false;
     }
 
     public void setCurrentFloor(int currentFloor) {
         this.currentFloor = currentFloor;
     }
 
-    public void setTargetFloor(int targetFloor) {
-        this.targetFloor = targetFloor;
-    }
-
-    public void setOccupied(boolean occupied) {
-        isOccupied = occupied;
+    public void setTargetCall(Optional<Call> targetCall) {
+        this.targetCall = targetCall;
     }
 
     public static Optional<Elevator> getElevatorById(UUID elevatorId, List<Elevator> elevators) {
@@ -62,30 +54,29 @@ public class Elevator {
                 .filter(elevator -> elevator.getId().equals(elevatorId))
                 .findAny();
     }
-    public static Elevator findNeartestFreeElevation(List<Elevator> elevators, int floor, ElevatorDirection direction) {
+    public static Elevator findNeartestFreeElevation(List<Elevator> elevators, Call call) {
         int minimumDistance = Integer.MAX_VALUE;
         int actDistance;
         Elevator nearestElevator = null;
 
         for (Elevator elevator : elevators) {
-            actDistance = abs(floor - elevator.getCurrentFloor());
+            actDistance = abs(call.getFloor() - elevator.getCurrentFloor());
 
-            if (!elevator.isOccupied() || isSameDirectionAndAlongWay(elevator, floor, direction)) {
+            if (!elevator.isOccupied() || isSameDirectionAndAlongWay(elevator, call.getFloor(), call.getDirection())) {
                 if (actDistance < minimumDistance) {
                     minimumDistance = actDistance;
                     nearestElevator = elevator;
                 }
             }
         }
-
         return nearestElevator;
     }
 
     private static boolean isSameDirectionAndAlongWay(Elevator elevator, int floor, ElevatorDirection direction) {
-        if (elevator.getDirection().equals(direction) && direction.equals(UP) && floor >= elevator.getCurrentFloor()) {
+        if (elevator.getTargetCall().get().getDirection().equals(direction) && direction.equals(UP) && floor >= elevator.getCurrentFloor()) {
             return true;
 
-        } else if (elevator.getDirection().equals(direction) && direction.equals(DOWN) && floor <= elevator.getCurrentFloor()) {
+        } else if (elevator.getTargetCall().get().getDirection().equals(direction) && direction.equals(DOWN) && floor <= elevator.getCurrentFloor()) {
             return true;
 
         } return false;

@@ -1,5 +1,7 @@
 package model;
 
+import java.util.Optional;
+
 public class Call {
     private int floor;
     private ElevatorDirection direction;
@@ -17,19 +19,18 @@ public class Call {
         return direction;
     }
 
-    public void setFloor(int floor) {
-        this.floor = floor;
-    }
-
-    public void setDirection(ElevatorDirection direction) {
-        this.direction = direction;
-    }
-
     public Elevator getSelectedElevator() {
         return selectedElevator;
     }
-
     public void setSelectedElevator(Elevator selectedElevator) {
         this.selectedElevator = selectedElevator;
+
+        if (selectedElevator.isOccupied()) {
+            Call oldTargetCall = selectedElevator.getTargetCall().get();
+            selectedElevator.setTargetCall(Optional.of(this));
+            selectedElevator.getFutureCall().add(0, oldTargetCall);
+        } else {
+            selectedElevator.setTargetCall(Optional.of(this));
+        }
     }
 }

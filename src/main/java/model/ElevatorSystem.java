@@ -22,8 +22,13 @@ public class ElevatorSystem {
                 .forEach(elevators::add);
     }
 
-    void pickup() {
-        // TODO
+    public void pickup(Call call) {
+
+        // acquire the nearest free lift
+        Elevator nearestElevator = Elevator.findNeartestFreeElevation(elevators, call);
+
+        // set the nearest lift
+        call.setSelectedElevator(nearestElevator);
     }
 
 
