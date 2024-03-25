@@ -49,11 +49,24 @@ public class Elevator {
         this.targetCall = targetCall;
     }
 
+    public void arrived() {
+        targetCall = Optional.ofNullable(futureCall.get(0));
+    }
+
+    public void move() {
+        if (targetCall.get().getDirection().equals(UP)) {
+            currentFloor += 1;
+        } else {
+            currentFloor -= 1;
+        }
+    }
+
     public static Optional<Elevator> getElevatorById(UUID elevatorId, List<Elevator> elevators) {
         return elevators.stream()
                 .filter(elevator -> elevator.getId().equals(elevatorId))
                 .findAny();
     }
+
     public static Elevator findNeartestFreeElevation(List<Elevator> elevators, Call call) {
         int minimumDistance = Integer.MAX_VALUE;
         int actDistance;

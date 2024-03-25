@@ -31,5 +31,29 @@ public class ElevatorSystem {
         call.setSelectedElevator(nearestElevator);
     }
 
+    public void step() {
+        // 1. button reading
+        // TODO
+
+        // 2. opening/closing doors and arrived
+        for (Elevator elevator : elevators) {
+
+            // we have arrived !
+            if (elevator.isOccupied() &&
+                    elevator.getTargetCall().get().getFloor() == elevator.getCurrentFloor()) {
+                elevator.arrived();
+                System.out.println("DOORS ARE OPEN");
+                System.out.println("...");
+                System.out.println("...");
+                System.out.println("...");
+                System.out.println("DOORS ARE CLOSED");
+            }
+            if (elevator.isOccupied()) {
+                elevator.move();
+            }
+        }
+
+
+    }
 
 }
