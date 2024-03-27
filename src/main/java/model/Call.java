@@ -3,26 +3,31 @@ package model;
 import java.util.Optional;
 
 public class Call {
-    private int floor;
-    private ElevatorDirection direction;
+    private final int pressingButtonFloor;
+    private boolean isPickedUp;  // whether a lift has come
+    private final ElevatorDirection direction;
     private Elevator selectedElevator;
 
-    public Call(int floor, ElevatorDirection direction) {
-        this.floor = floor;
+    public Call(int pressingButtonFloor, ElevatorDirection direction) {
+        this.pressingButtonFloor = pressingButtonFloor;
         this.direction = direction;
+        this.isPickedUp = false;
     }
-    public int getFloor() {
-        return floor;
+    public int getPressingButtonFloor() {
+        return pressingButtonFloor;
     }
+
 
     public ElevatorDirection getDirection() {
         return direction;
     }
-
     public Elevator getSelectedElevator() {
         return selectedElevator;
     }
-    public void setSelectedElevator(Elevator selectedElevator) {
+    public synchronized boolean isPickedUp() {
+        return isPickedUp;
+    }
+    public synchronized void setSelectedElevator(Elevator selectedElevator) {
         this.selectedElevator = selectedElevator;
 
         if (selectedElevator.isOccupied()) {
@@ -32,5 +37,9 @@ public class Call {
         } else {
             selectedElevator.setTargetCall(Optional.of(this));
         }
+    }
+
+    public synchronized void setPickedUp(boolean pickedUp) {
+        isPickedUp = pickedUp;
     }
 }

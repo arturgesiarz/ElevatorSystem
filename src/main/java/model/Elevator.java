@@ -18,7 +18,7 @@ public class Elevator {
     public Elevator() {
         id = UUID.randomUUID();
         currentFloor = START_FLOOR;
-        futureCall = new ArrayList<Call>();
+        futureCall = new ArrayList<>();
     }
 
     public UUID getId() {
@@ -41,22 +41,22 @@ public class Elevator {
         return targetCall != null ? true : false;
     }
 
-    public void setCurrentFloor(int currentFloor) {
-        this.currentFloor = currentFloor;
-    }
 
     public void setTargetCall(Optional<Call> targetCall) {
         this.targetCall = targetCall;
     }
 
-    public void arrived() {
-        targetCall = Optional.ofNullable(futureCall.get(0));
+    public synchronized void arrived() {
+        targetCall = futureCall.isEmpty() ? null : Optional.ofNullable(futureCall.get(0));
+        System.out.println("Elevator " + id + " has been arrived!" + currentFloor + "Get in!");
+
     }
 
-    public void move() {
-        if (targetCall.get().getDirection().equals(UP)) {
+    public synchronized void move() {
+        if (targetCall.get().getPressingButtonFloor() > currentFloor) {
             currentFloor += 1;
-        } else {
+
+        } else if (targetCall.get().getPressingButtonFloor() < currentFloor) {
             currentFloor -= 1;
         }
     }
@@ -73,9 +73,9 @@ public class Elevator {
         Elevator nearestElevator = null;
 
         for (Elevator elevator : elevators) {
-            actDistance = abs(call.getFloor() - elevator.getCurrentFloor());
+            actDistance = abs(call.getPressingButtonFloor() - elevator.getCurrentFloor());
 
-            if (!elevator.isOccupied() || isSameDirectionAndAlongWay(elevator, call.getFloor(), call.getDirection())) {
+            if (!elevator.isOccupied()) {
                 if (actDistance < minimumDistance) {
                     minimumDistance = actDistance;
                     nearestElevator = elevator;
@@ -95,4 +95,9 @@ public class Elevator {
         } return false;
     }
 
+    @Override
+    public String toString() {
+        return "Elevator - " + id + ".\n" +
+                "It is on floor - " + currentFloor + ".";
+    }
 }
