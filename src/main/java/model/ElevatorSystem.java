@@ -7,7 +7,7 @@ import java.util.stream.IntStream;
 
 
 public class ElevatorSystem {
-    private static final int MAX_ELEVATORS = 10;
+    private static final int MAX_ELEVATORS = 2;
     private static final int NUMBER_OF_FLOORS = 100;
 
     private List<Elevator> elevators = new ArrayList<>();
@@ -19,7 +19,10 @@ public class ElevatorSystem {
     public ElevatorSystem (int amountOfElevators){
         IntStream.range(0, amountOfElevators)
                 .mapToObj(i -> new Elevator())
-                .forEach(elevators::add);
+                .forEach(elevator -> {
+                    elevators.add(elevator);
+                    elevator.addObserver(new ConsoleElevatorDisplay());
+                });
     }
 
     public synchronized void pickup(Call call) {
@@ -43,20 +46,16 @@ public class ElevatorSystem {
 
     public void moveElevators() {
         while (true) {
-            synchronized (elevators) {
-                for (Elevator elevator : elevators) {
-                    openDoors(elevator);
-                    move(elevator);
-                }
+            for (Elevator elevator : elevators) {
+                openDoors(elevator);
+                move(elevator);
             }
-
         }
     }
 
     public synchronized void move(Elevator elevator) {
         if (elevator.isOccupied()) {
             elevator.move();
-            System.out.println(elevator);
         }
     }
 
@@ -73,7 +72,6 @@ public class ElevatorSystem {
             System.out.println("...");
             System.out.println("...");
             System.out.println("DOORS ARE CLOSED");
-
 
             notifyAll();
         }
@@ -104,12 +102,14 @@ public class ElevatorSystem {
         // each lift call is separate
         Call call1 = new Call(20,ElevatorDirection.UP);
         Call call2 = new Call(2, ElevatorDirection.UP);
-        Call call3 = new Call(3, ElevatorDirection.UP);
+        Call call3 = new Call(6, ElevatorDirection.UP);
         Call call4 = new Call(10, ElevatorDirection.DOWN);
 
         // a new thread is created for each lift call
-        // TODO
-
+//        call1.setFinalFloor(21);
+//        call2.setFinalFloor(10);
+//        call3.setFinalFloor(5);
+//        call4.setFinalFloor(2);
 
         new Thread(() -> elevatorSystem.pickup(call1)).start();
         new Thread(() -> elevatorSystem.pickup(call2)).start();
@@ -121,3 +121,5 @@ public class ElevatorSystem {
     }
 
 }
+
+//  TODO DODAC MOZLIWOSC WYBIERANIA PIETRA ABY TO DZIALALO DOBRZE
