@@ -25,14 +25,12 @@ public class ElevatorSystem {
     }
 
     public void pickup(Call call) {
-        // acquire the nearest free lift
         Elevator nearestElevator = Elevator.findNeartestFreeElevation(elevators, call);
 
         while (nearestElevator == null) {
             nearestElevator = Elevator.findNeartestFreeElevation(elevators, call);
         }
 
-        // set the nearest lift
         call.setSelectedElevator(nearestElevator);
     }
 
@@ -100,28 +98,5 @@ public class ElevatorSystem {
         System.out.println("...");
         System.out.println("...");
         System.out.println("DOORS ARE CLOSED");
-    }
-
-    public static void main(String[] args) {
-        ElevatorSystem elevatorSystem = new ElevatorSystem();
-
-        // each lift call is separate
-        Call call1 = new Call(20,ElevatorDirection.UP);
-        Call call2 = new Call(2, ElevatorDirection.UP);
-        Call call3 = new Call(1, ElevatorDirection.UP);
-
-
-        // a new thread is created for each lift call
-        call1.setFinalFloor(21);
-        call2.setFinalFloor(7);
-        call3.setFinalFloor(10);
-
-
-        new Thread(() -> elevatorSystem.pickup(call1)).start();
-        new Thread(() -> elevatorSystem.pickup(call2)).start();
-        new Thread(() -> elevatorSystem.pickup(call3)).start();
-
-
-        elevatorSystem.moveElevators();
     }
 }

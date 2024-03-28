@@ -97,10 +97,9 @@ public class Elevator {
 
     }
 
-    public static synchronized Elevator findNeartestFreeElevation(List<Elevator> elevators, Call call) {
+    public static Elevator findNeartestFreeElevation(List<Elevator> elevators, Call call) {
         int minimumDistance = Integer.MAX_VALUE;
         int actDistance;
-        boolean isChangedElevatorWay;
         boolean neareastElevatorOccupired = false;
         Elevator nearestElevator = null;
 
@@ -108,94 +107,28 @@ public class Elevator {
         for (Elevator elevator : elevators) {
             actDistance = abs(call.getPressingButtonFloor() - elevator.getCurrentFloor());
 
-            if (!elevator.isOccupied() || isSameDirectionAndAlongWay(elevator,
-                    call.getPressingButtonFloor(), call.getDirection())) {
-
-                isChangedElevatorWay = isSameDirectionAndAlongWay(elevator,
-                        call.getPressingButtonFloor(), call.getDirection());
+            if (!elevator.isOccupied()) {
 
                 if (actDistance < minimumDistance) {
                     minimumDistance = actDistance;
                     nearestElevator = elevator;
+                }
 
-                    if (isChangedElevatorWay) {
-                        neareastElevatorOccupired = true;
-                    }
+            } else if (isSameDirectionAndAlongWay(elevator,
+                    call.getPressingButtonFloor(), call.getDirection())) {
+                if (actDistance < minimumDistance) {
+                    minimumDistance = actDistance;
+                    nearestElevator = elevator;
                 }
             }
         }
 
-        // 1.
-        // A -> 0 - 10, B -> 4 - 11
-        // A' -> 0 - 4, B' -> 4 - 10, C' -> 10 - 11
-
-        // 2.
-        // A -> 0 - 10, B -> 4 -> 9
-        // A' -> 0 - 4, B' -> 4 - 9, C' -> 9 - 10
-
-        // 3.
-        // A -> 0 - 10, B -> 10 - 11
-        // A' -> 0 - 10, B' -> 10 - 11
-
-        // 3.
-        // A -> 11 - 4, B -> 9 - 0
-        // A' -> 11 - 9, B' -> 9 - 4, C' -> 4 - 0
-
-        // 4.
-        // A -> 11 - 4, B -> 10 - 3
-        // A' -> 11 - 10, B' -> 10 - 4, C' -> 4 - 3
-
-        if (neareastElevatorOccupired) {
-            if (call.getDirection().equals(UP)) {
-                if (nearestElevator.targetCall.get().getFinalFloor() != call.getPressingButtonFloor() &&
-                        nearestElevator.targetCall.get().getFinalFloor() != call.getFinalFloor()) {
-
-                    Call call1 = new Call(nearestElevator.targetCall.get().getPressingButtonFloor(),
-                            call.getPressingButtonFloor(),
-                            UP,
-                            nearestElevator,
-                            true);
-
-                    Call call2 = new Call(call.getPressingButtonFloor(),
-                            min(call.getFinalFloor(),nearestElevator.targetCall.get().getFinalFloor()),
-                            UP,
-                            nearestElevator,
-                            false);
-
-                    Call call3 = new Call(min(call.getFinalFloor(),nearestElevator.targetCall.get().getFinalFloor()),
-                            max(call.getFinalFloor(),nearestElevator.targetCall.get().getFinalFloor()),
-                            UP,
-                            nearestElevator,
-                            false);
-
-                } else if (nearestElevator.targetCall.get().getFinalFloor() != call.getPressingButtonFloor() &&
-                            nearestElevator.targetCall.get().getFinalFloor() == call.getFinalFloor()){
-
-                    Call call1 = new Call(nearestElevator.targetCall.get().getPressingButtonFloor(),
-                            call.getPressingButtonFloor(),
-                            call.getDirection(),
-                            nearestElevator,
-                            true);
-
-                    Call call2 = new Call(call.getPressingButtonFloor(),
-                            call.getFinalFloor(),
-                            call.getDirection(),
-                            nearestElevator,
-                            false);
-                }
-            } else {
-                if (nearestElevator.targetCall.get().getFinalFloor() != call.getPressingButtonFloor()) {  // case A -> 11 - 4, B -> 4 - 0
-                    Call call1;
-                    Call call2;
-                    Call call3;
-
-                }
-            }
-        }
         return nearestElevator;
-
     }
 
+    public void setCurrentFloor(int currentFloor) {
+        this.currentFloor = currentFloor;
+    }
 
     private static boolean isSameDirectionAndAlongWay(Elevator elevator, int floor, ElevatorDirection direction) {
         if (elevator.getTargetCall().get().getDirection().equals(direction) && direction.equals(UP)
