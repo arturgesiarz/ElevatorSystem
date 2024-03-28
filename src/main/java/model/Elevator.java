@@ -50,7 +50,7 @@ public class Elevator {
         return futureCall;
     }
 
-    public boolean isOccupied() {
+    public synchronized boolean isOccupied() {
         return targetCall != null ? true : false;
     }
 
@@ -73,9 +73,12 @@ public class Elevator {
 
 
     public synchronized void arrived() {
+
+        // we have arrived
+        targetCall.get().setPickedUp(true);
         targetCall = futureCall.isEmpty() ? null : Optional.ofNullable(futureCall.get(0));
+
         elevatorChanged("Arrived to " + currentFloor);
-        // notifyAll();
     }
 
     public synchronized void move() {

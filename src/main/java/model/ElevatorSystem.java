@@ -3,11 +3,12 @@ package model;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.PriorityQueue;
+import java.util.concurrent.ExecutorService;
 import java.util.stream.IntStream;
 
 
 public class ElevatorSystem {
-    private static final int MAX_ELEVATORS = 2;
+    private static final int MAX_ELEVATORS = 3;
     private static final int NUMBER_OF_FLOORS = 100;
 
     private List<Elevator> elevators = new ArrayList<>();
@@ -47,8 +48,11 @@ public class ElevatorSystem {
     public void moveElevators() {
         while (true) {
             for (Elevator elevator : elevators) {
-                openDoors(elevator);
-                move(elevator);
+                if (elevator.isOccupied()) {
+                    openDoors(elevator);
+                    move(elevator);
+                }
+
             }
         }
     }
@@ -63,7 +67,7 @@ public class ElevatorSystem {
 
         // elevator came for the user
         if (elevator.isOccupied() &&
-                elevator.getTargetCall().get().getPressingButtonFloor() == elevator.getCurrentFloor()) {
+                elevator.getTargetCall().get().getPressingButtonFloor() == elevator.getCurrentFloor() && !elevator.getTargetCall().get().isPickedUp()) {
 
             elevator.arrived();
 
@@ -106,15 +110,15 @@ public class ElevatorSystem {
         Call call4 = new Call(10, ElevatorDirection.DOWN);
 
         // a new thread is created for each lift call
-//        call1.setFinalFloor(21);
-//        call2.setFinalFloor(10);
-//        call3.setFinalFloor(5);
-//        call4.setFinalFloor(2);
+        call1.setFinalFloor(21);
+        call2.setFinalFloor(10);
+        call3.setFinalFloor(10);
+        call4.setFinalFloor(2);
 
         new Thread(() -> elevatorSystem.pickup(call1)).start();
         new Thread(() -> elevatorSystem.pickup(call2)).start();
         new Thread(() -> elevatorSystem.pickup(call3)).start();
-        new Thread(() -> elevatorSystem.pickup(call4)).start();
+//        new Thread(() -> elevatorSystem.pickup(call4)).start();
 
         // at the very end I start the lifts in the main thread
         elevatorSystem.moveElevators();
