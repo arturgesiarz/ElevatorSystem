@@ -48,37 +48,45 @@ public class ElevatorSystem {
     public void moveElevators() {
         while (true) {
             for (Elevator elevator : elevators) {
-                if (elevator.isOccupied()) {
-                    openDoors(elevator);
-                    move(elevator);
-                }
-
+                openDoors(elevator);
+                move(elevator);
             }
         }
     }
 
     public synchronized void move(Elevator elevator) {
-        if (elevator.isOccupied()) {
+
+        // same destination, we arrived again
+        if (elevator.isOccupied() &&
+                elevator.getTargetCall().get().getPressingButtonFloor() == elevator.getCurrentFloor()) {
+            destinationReached(elevator);
+
+        } else if (elevator.isOccupied()) {
             elevator.move();
         }
+
     }
 
     private synchronized void openDoors(Elevator elevator) {
 
         // elevator came for the user
         if (elevator.isOccupied() &&
-                elevator.getTargetCall().get().getPressingButtonFloor() == elevator.getCurrentFloor() && !elevator.getTargetCall().get().isPickedUp()) {
+                elevator.getTargetCall().get().getPressingButtonFloor() == elevator.getCurrentFloor()) {
 
-            elevator.arrived();
-
-            System.out.println("DOORS ARE OPEN");
-            System.out.println("...");
-            System.out.println("...");
-            System.out.println("...");
-            System.out.println("DOORS ARE CLOSED");
-
-            notifyAll();
+            destinationReached(elevator);
         }
+    }
+
+    private synchronized void destinationReached(Elevator elevator) {
+        elevator.arrived();
+
+        System.out.println("DOORS ARE OPEN");
+        System.out.println("...");
+        System.out.println("...");
+        System.out.println("...");
+        System.out.println("DOORS ARE CLOSED");
+
+        notifyAll();
     }
 
 
@@ -106,7 +114,7 @@ public class ElevatorSystem {
         // each lift call is separate
         Call call1 = new Call(20,ElevatorDirection.UP);
         Call call2 = new Call(2, ElevatorDirection.UP);
-        Call call3 = new Call(6, ElevatorDirection.UP);
+        Call call3 = new Call(2, ElevatorDirection.UP);
         Call call4 = new Call(10, ElevatorDirection.DOWN);
 
         // a new thread is created for each lift call
@@ -118,7 +126,7 @@ public class ElevatorSystem {
         new Thread(() -> elevatorSystem.pickup(call1)).start();
         new Thread(() -> elevatorSystem.pickup(call2)).start();
         new Thread(() -> elevatorSystem.pickup(call3)).start();
-//        new Thread(() -> elevatorSystem.pickup(call4)).start();
+        new Thread(() -> elevatorSystem.pickup(call4)).start();
 
         // at the very end I start the lifts in the main thread
         elevatorSystem.moveElevators();

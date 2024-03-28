@@ -74,9 +74,14 @@ public class Elevator {
 
     public synchronized void arrived() {
 
-        // we have arrived
         targetCall.get().setPickedUp(true);
-        targetCall = futureCall.isEmpty() ? null : Optional.ofNullable(futureCall.get(0));
+
+        if (futureCall.isEmpty()) {
+            targetCall = null;
+        } else {
+            targetCall = Optional.ofNullable(futureCall.get(0));
+            futureCall.remove(0);
+        }
 
         elevatorChanged("Arrived to " + currentFloor);
     }
@@ -90,7 +95,6 @@ public class Elevator {
             currentFloor -= 1;
             elevatorChanged("Going down from:" + (currentFloor - 1) + " to " + currentFloor);
         }
-
     }
 
     public static Optional<Elevator> getElevatorById(UUID elevatorId, List<Elevator> elevators) {
@@ -112,7 +116,9 @@ public class Elevator {
         for (Elevator elevator : elevators) {
             actDistance = abs(call.getPressingButtonFloor() - elevator.getCurrentFloor());
 
-            if (!elevator.isOccupied() || isSameDirectionAndAlongWay(elevator, call.getPressingButtonFloor(), call.getDirection())) {
+            if (!elevator.isOccupied() || isSameDirectionAndAlongWay(elevator,
+                    call.getPressingButtonFloor(), call.getDirection())) {
+
                 if (actDistance < minimumDistance) {
                     minimumDistance = actDistance;
                     nearestElevator = elevator;
