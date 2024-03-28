@@ -8,7 +8,6 @@ import java.util.stream.IntStream;
 
 public class ElevatorSystem {
     private static final int MAX_ELEVATORS = 1;
-    private static final int NUMBER_OF_FLOORS = 100;
 
     private List<Elevator> elevators = new ArrayList<>();
     private PriorityQueue<Call> calls;
@@ -123,7 +122,6 @@ public class ElevatorSystem {
         new Thread(() -> elevatorSystem.pickup(call3)).start();
 
 
-        // at the very end I start the lifts in the main thread
         elevatorSystem.moveElevators();
     }
 }

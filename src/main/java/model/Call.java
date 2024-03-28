@@ -5,7 +5,7 @@ import java.util.Optional;
 public class Call {
     private final int pressingButtonFloor;
     private int finalFloor;
-    private boolean isPickedUp;  // whether a lift has come
+    private boolean isPickedUp;
     private final ElevatorDirection direction;
     private Elevator selectedElevator;
 
@@ -13,6 +13,13 @@ public class Call {
         this.pressingButtonFloor = pressingButtonFloor;
         this.direction = direction;
         this.isPickedUp = false;
+    }
+    public Call(int pressingButtonFloor, int finalFloor,ElevatorDirection direction, Elevator selectedElevator, boolean isPickedUp){
+        this.pressingButtonFloor = pressingButtonFloor;
+        this.finalFloor = finalFloor;
+        this.direction = direction;
+        this.selectedElevator = selectedElevator;
+        this.isPickedUp = isPickedUp;
     }
     public int getPressingButtonFloor() {
         return pressingButtonFloor;
