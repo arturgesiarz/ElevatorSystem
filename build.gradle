@@ -4,7 +4,7 @@ plugins {
 }
 
 application {
-    getMainClass().set('model.ElevatorSystem')
+    getMainClass().set('ElevatorApplication')
 }
 
 java {

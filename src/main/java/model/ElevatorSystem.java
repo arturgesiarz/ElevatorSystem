@@ -7,7 +7,7 @@ import java.util.stream.IntStream;
 
 
 public class ElevatorSystem {
-    private static final int MAX_ELEVATORS = 1;
+    private static final int MAX_ELEVATORS = 16;
 
     private List<Elevator> elevators = new ArrayList<>();
     private PriorityQueue<Call> calls;
