@@ -3,12 +3,11 @@ package model;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.PriorityQueue;
-import java.util.concurrent.ExecutorService;
 import java.util.stream.IntStream;
 
 
 public class ElevatorSystem {
-    private static final int MAX_ELEVATORS = 3;
+    private static final int MAX_ELEVATORS = 1;
     private static final int NUMBER_OF_FLOORS = 100;
 
     private List<Elevator> elevators = new ArrayList<>();
@@ -26,19 +25,12 @@ public class ElevatorSystem {
                 });
     }
 
-    public synchronized void pickup(Call call) {
-
+    public void pickup(Call call) {
         // acquire the nearest free lift
         Elevator nearestElevator = Elevator.findNeartestFreeElevation(elevators, call);
 
         while (nearestElevator == null) {
-            try {
-                wait();
-                System.out.println(call.getPressingButtonFloor());
-                nearestElevator = Elevator.findNeartestFreeElevation(elevators, call);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            nearestElevator = Elevator.findNeartestFreeElevation(elevators, call);
         }
 
         // set the nearest lift
@@ -54,12 +46,20 @@ public class ElevatorSystem {
         }
     }
 
-    public synchronized void move(Elevator elevator) {
+    public void move(Elevator elevator) {
 
         // same destination, we arrived again
         if (elevator.isOccupied() &&
-                elevator.getTargetCall().get().getPressingButtonFloor() == elevator.getCurrentFloor()) {
-            destinationReached(elevator);
+                elevator.getTargetCall().get().getPressingButtonFloor() == elevator.getCurrentFloor() &&
+                !elevator.getTargetCall().get().isPickedUp()) {
+
+            arrivedToPerson(elevator);
+
+        } else if (elevator.isOccupied() &&
+                elevator.getTargetCall().get().getFinalFloor() == elevator.getCurrentFloor() &&
+                elevator.getTargetCall().get().isPickedUp()) {
+
+            arrivedToDestination(elevator);
 
         } else if (elevator.isOccupied()) {
             elevator.move();
@@ -67,45 +67,40 @@ public class ElevatorSystem {
 
     }
 
-    private synchronized void openDoors(Elevator elevator) {
+    private void openDoors(Elevator elevator) {
 
-        // elevator came for the user
         if (elevator.isOccupied() &&
-                elevator.getTargetCall().get().getPressingButtonFloor() == elevator.getCurrentFloor()) {
+                elevator.getTargetCall().get().getPressingButtonFloor() == elevator.getCurrentFloor() &&
+                !elevator.getTargetCall().get().isPickedUp()) {
 
-            destinationReached(elevator);
+            arrivedToPerson(elevator);
+        }
+        if (elevator.isOccupied() &&
+                elevator.getTargetCall().get().getFinalFloor() == elevator.getCurrentFloor() &&
+                elevator.getTargetCall().get().isPickedUp()) {
+
+            arrivedToDestination(elevator);
         }
     }
 
-    private synchronized void destinationReached(Elevator elevator) {
-        elevator.arrived();
+    private synchronized void arrivedToPerson(Elevator elevator) {
+        elevator.arrivedToPerson();
 
         System.out.println("DOORS ARE OPEN");
         System.out.println("...");
         System.out.println("...");
         System.out.println("...");
         System.out.println("DOORS ARE CLOSED");
-
-        notifyAll();
     }
 
+    private synchronized void arrivedToDestination(Elevator elevator) {
+        elevator.arrivedToDestination();
 
-    public void status() {
-        // displays up-to-date information on all lifts
-        elevators.forEach(elevator -> {
-            if (elevator.isOccupied()) {
-                System.out.println(elevator);
-            }
-        });
-    }
-
-    public void followTheLift(Call actCall) {
-        // function to follow the lift
-        Elevator elevator = actCall.getSelectedElevator();
-
-        while (elevator.isOccupied()) {
-            System.out.println(elevator);
-        }
+        System.out.println("DOORS ARE OPEN");
+        System.out.println("...");
+        System.out.println("...");
+        System.out.println("...");
+        System.out.println("DOORS ARE CLOSED");
     }
 
     public static void main(String[] args) {
@@ -114,24 +109,21 @@ public class ElevatorSystem {
         // each lift call is separate
         Call call1 = new Call(20,ElevatorDirection.UP);
         Call call2 = new Call(2, ElevatorDirection.UP);
-        Call call3 = new Call(2, ElevatorDirection.UP);
-        Call call4 = new Call(10, ElevatorDirection.DOWN);
+        Call call3 = new Call(1, ElevatorDirection.UP);
+
 
         // a new thread is created for each lift call
         call1.setFinalFloor(21);
-        call2.setFinalFloor(10);
+        call2.setFinalFloor(7);
         call3.setFinalFloor(10);
-        call4.setFinalFloor(2);
+
 
         new Thread(() -> elevatorSystem.pickup(call1)).start();
         new Thread(() -> elevatorSystem.pickup(call2)).start();
         new Thread(() -> elevatorSystem.pickup(call3)).start();
-        new Thread(() -> elevatorSystem.pickup(call4)).start();
+
 
         // at the very end I start the lifts in the main thread
         elevatorSystem.moveElevators();
     }
-
 }
-
-//  TODO DODAC MOZLIWOSC WYBIERANIA PIETRA ABY TO DZIALALO DOBRZE

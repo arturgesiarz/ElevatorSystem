@@ -1,9 +1,6 @@
 package model;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static java.lang.Math.abs;
 import static model.ElevatorDirection.*;
@@ -59,56 +56,48 @@ public class Elevator {
         this.targetCall = targetCall;
     }
 
-    public List<Integer> getButtonsPressed() {
-        return buttonsPressed;
-    }
 
-    public void addFloorToButtonList(int buttonFloor) {
-        buttonsPressed.add(buttonFloor);
-    }
-
-    public void deleteLastFloorInButtonList() {
-        buttonsPressed.remove(0);
-    }
-
-
-    public synchronized void arrived() {
-
+    public synchronized void arrivedToPerson() {
         targetCall.get().setPickedUp(true);
+        elevatorChanged("Arrived to person " + currentFloor);
 
+    }
+
+    public synchronized void arrivedToDestination() {
         if (futureCall.isEmpty()) {
             targetCall = null;
         } else {
             targetCall = Optional.ofNullable(futureCall.get(0));
             futureCall.remove(0);
         }
-
         elevatorChanged("Arrived to " + currentFloor);
     }
 
     public synchronized void move() {
-        if (targetCall.get().getPressingButtonFloor() > currentFloor) {
-            currentFloor += 1;
-            elevatorChanged("Going up from:" + (currentFloor - 1) + " to " + currentFloor);
+        if (targetCall.get().isPickedUp()) {
+            if (targetCall.get().getFinalFloor() > currentFloor) {
+                currentFloor += 1;
+                elevatorChanged("Going up from:" + (currentFloor - 1) + " to " + currentFloor);
 
-        } else if (targetCall.get().getPressingButtonFloor() < currentFloor) {
-            currentFloor -= 1;
-            elevatorChanged("Going down from:" + (currentFloor - 1) + " to " + currentFloor);
+            } else if (targetCall.get().getFinalFloor() < currentFloor) {
+                currentFloor -= 1;
+                elevatorChanged("Going down from:" + (currentFloor + 1) + " to " + currentFloor);
+            }
+
+        } else {
+            if (targetCall.get().getPressingButtonFloor() > currentFloor) {
+                currentFloor += 1;
+                elevatorChanged("Going up from:" + (currentFloor - 1) + " to " + currentFloor);
+
+            } else if (targetCall.get().getPressingButtonFloor() < currentFloor) {
+                currentFloor -= 1;
+                elevatorChanged("Going down from:" + (currentFloor + 1) + " to " + currentFloor);
+            }
         }
-    }
 
-    public static Optional<Elevator> getElevatorById(UUID elevatorId, List<Elevator> elevators) {
-        return elevators.stream()
-                .filter(elevator -> elevator.getId().equals(elevatorId))
-                .findAny();
     }
-
 
     public static synchronized Elevator findNeartestFreeElevation(List<Elevator> elevators, Call call) {
-        /*
-            This function finds the nearest lift for people who have pressed the lift call button
-
-     */
         int minimumDistance = Integer.MAX_VALUE;
         int actDistance;
         Elevator nearestElevator = null;
@@ -130,11 +119,6 @@ public class Elevator {
 
 
     private static boolean isSameDirectionAndAlongWay(Elevator elevator, int floor, ElevatorDirection direction) {
-        /*
-            I check whether, when the lift is currently going up/down,
-            it will just have me in the way so that it can stop and I can get in.
-     */
-
         if (elevator.getTargetCall().get().getDirection().equals(direction) && direction.equals(UP)
                 && floor >= elevator.getCurrentFloor() && floor <= elevator.getTargetCall().get().getFinalFloor()) {
             return true;
